@@ -1295,7 +1295,28 @@ class BaseLdap(object):
 
     @staticmethod
     def _dn_to_id(dn):
-        return ldap.dn.str2dn(dn)[0][0][1]
+        #return ldap.dn.str2dn(dn)[0][0][1]
+        query = u'(&(objectClass=%s)(%s=*))' % (
+            self.object_class,
+            self.id_attr)
+        LOG.debug("CCB query={}".format(query))
+        attrs = list(set([self.id_attr]))
+        LOG.debug("CCB attrs={}".format(attrs))
+        #dn = "cn=johndoe,ou=users,dc=test,dc=com"
+        LOG.debug("CCB           dn={}".format(dn))
+        with self.get_connection() as conn:
+            res = conn.search_s(dn,
+                                ldap.SCOPE_SUBTREE,
+                                query,
+                                attrs)
+        dn, attrs = res[0]
+        LOG.debug("CCB res={}".format(res))
+        LOG.debug("CCB dn={}".format(dn))
+        LOG.debug("CCB attrs={}".format(attrs))
+        LOG.debug("CCB attrs['uid'][0]={}".format(attrs['uid'][0]))
+        uid = attrs['uid'][0]
+        return uid
+
 
     def _ldap_res_to_model(self, res):
         # LDAP attribute names may be returned in a different case than
